@@ -5,7 +5,7 @@ const Home = () => {
   const { user } = useSelector((store) => store.user);
 
   return (
-    <div className='w-full flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-100 via-white to-purple-100 px-4'>
+    <div className='w-full  flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-100 via-white to-purple-100 px-4'>
       <h1 className='text-5xl md:text-6xl font-bold text-center text-blue-700 mb-6'>
         {user ? `Welcome, ${user.displayName}!` : 'Welcome to the App!'}
       </h1>

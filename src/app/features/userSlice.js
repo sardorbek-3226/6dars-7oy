@@ -10,7 +10,9 @@
             login: (state, {payload})=>{
                 state.user = payload 
             },
-            logOut: (state, {payload})=>{},
+            logOut: (state, {payload})=>{
+                state.user == null;
+            },
             authReady: (state, { payload }) => {
                 state.isAuthReady = true;
             }

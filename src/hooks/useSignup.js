@@ -1,35 +1,56 @@
-import { useState } from "react"
-import { useDispatch } from "react-redux" 
-import {auth} from "../firebase/config"
-import { login } from "../app/features/userSlice"
-import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth"
-import toast from "react-hot-toast"
-export const useSignup = ()=>{
-    const [isPending, setIsPending] = useState(false);
-    const dispatch = useDispatch()
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db } from "../firebase/config";
+import toast from "react-hot-toast";
+import { login } from "../app/features/userSlice";
+import { addDoc, collection} from "firebase/firestore";
 
-    const signup =async (displayName, email, password) =>{
-        setIsPending(true)
-        try{
-            const req = await createUserWithEmailAndPassword(auth, email, password);
+export const useSignup = () => {
+  const [isPending, setIsPending] = useState(false);
+  const dispatch = useDispatch();
 
-            if(!req.user){
-                throw new Error("authentication filed")
-            }
+  const signup = async (userName, email, password) => {
+    setIsPending(true);
 
-            await updateProfile(auth.currentUser, {
-                displayName,
-                photoURL:"https://api.dicebear.com/9.x/initials/svg?seed="+displayName,
-            })
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+        console.log(email, password)
+      if (!res.user) throw new Error("Authentication failed");
 
-            dispatch(login(req.user))
-            toast.success(`Welcome, ${auth.currentUser.displayName}`)
-        }catch(error){
-            toast.error(error.message)
-        }finally{
-            setIsPending(false)
-        }
-    };
+      const avatarURL = `https://api.dicebear.com/9.x/initials/svg?seed=${userName}`;
 
-    return { signup, isPending}
-}
+      await updateProfile(res.user, {
+        displayName: userName,
+        photoURL: avatarURL,
+      });
+
+      await addDoc(collection(db, "users"), {
+        online: true,
+        displayName: userName,
+        photoURL: avatarURL,
+        uid: res.user.uid,
+      });
+
+      const token = await res.user.getIdToken();
+      console.log("User Token:", token);
+
+      dispatch(
+        login({
+          displayName: userName,
+          photoURL: avatarURL,
+          uid: res.user.uid,
+          email: res.user.email,
+        })
+      );
+
+      toast.success(`Welcome, ${userName}`);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return { signup, isPending };
+};
